@@ -1,0 +1,18 @@
+---
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: {{ cookiecutter.project_slug }}-traefik-route
+  namespace: {{ cookiecutter.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ cookiecutter.project_slug }}-traefik-route
+spec:
+  entryPoints:
+    - web
+  routes:
+    - kind: Rule
+      match: Host(`{{ cookiecutter.app_domain }}.{{ cookiecutter.cluster_base_domain }}`)
+      services:
+        - kind: Service
+          name: {{ cookiecutter.project_slug }}-service
+          port: {{ cookiecutter.container_port }}
