@@ -1,0 +1,19 @@
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ cookiecutter.project_slug }}
+  namespace: {{ cookiecutter.namespace }}
+  annotations:
+    kubernetes.io/ingress.class: "traefik"
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /{{ cookiecutter.project_slug }}/
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ cookiecutter.project_slug }}
+            port:
+              number: {{ cookiecutter.container_port }}
