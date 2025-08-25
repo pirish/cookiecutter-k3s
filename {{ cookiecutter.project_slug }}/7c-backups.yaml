@@ -1,0 +1,158 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  namespace: {{ cookiecutter.namespace }}
+  name: {{ cookiecutter.project_slug }}-backup
+spec:
+  # Every day at 0300
+  schedule: 0 3 * * *
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: restic
+              image: docker.io/restic/restic:0.18.0
+              command:
+                - restic
+                - "-r"
+                - "s3:$(BUCKET_NAME)/$(CLUSTER_NAME)/{{ cookiecutter.project_slug }}-backup"
+                - "--verbose"
+                - "backup"
+                - "/home/node/{{ cookiecutter.project_slug }}-data"
+              env:
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: restic
+                      key: AWS_ACCESS_KEY_ID
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: restic
+                      key: AWS_SECRET_ACCESS_KEY
+                - name: RESTIC_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: restic
+                      key: RESTIC_PASSWORD
+                - name: BUCKET_NAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: restic
+                      key: BUCKET_NAME
+                - name: CLUSTER_NAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: restic
+                      key: CLUSTER_NAME
+                - name: RESTIC_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: restic
+                      key: CLUSTER_NAME
+              volumeMounts:
+                {%- if cookiecutter.has_volume_config %}
+                - name: config
+                  mountPath: /home/node/{{ cookiecutter.project_slug }}-data/config
+                  readOnly: true
+                {%- endif %}
+                {%- if cookiecutter.has_volume_data %}
+                - name: data
+                  mountPath: /home/node/{{ cookiecutter.project_slug }}-data/data 
+                  readOnly: false
+                {%- endif %}
+                {%- if cookiecutter.has_volume_2 %}
+                - name: volume-2
+                  mountPath: /home/node/{{ cookiecutter.project_slug }}-data/volume-2
+                  readOnly: false
+                {%- endif %} 
+                {%- if cookiecutter.has_volume_3 %}
+                - name: volume-3
+                  mountPath: /home/node/{{ cookiecutter.project_slug }}-data/volume-3
+                  readOnly: false
+                {%- endif %}
+          volumes:
+            {%- if cookiecutter.has_volume_config %}
+            - name: config
+              persistentVolumeClaim:
+                claimName: {{ cookiecutter.project_slug }}-config-pvc
+            {%- endif %}
+            {%- if cookiecutter.has_volume_data %}
+            - name: data
+              persistentVolumeClaim:
+                claimName: {{ cookiecutter.project_slug }}-data-pvc
+            {%- endif %}
+            {%- if cookiecutter.has_volume_2 %}
+            - name: volume-2
+              persistentVolumeClaim:
+                claimName: {{ cookiecutter.project_slug }}-volume-2-pvc
+            {%- endif %}
+            {%- if cookiecutter.has_volume_3 %}
+            - name: volume-3
+              persistentVolumeClaim:
+                claimName: {{ cookiecutter.project_slug }}-volume-3-pvc
+            {%- endif %}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  namespace: {{ cookiecutter.namespace }}
+  name: {{ cookiecutter.project_slug }}-backup-cleanup
+spec:
+  # Every day at 0400 after backups have run
+  schedule: 0 4 * * *
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: restic
+              image: docker.io/restic/restic:0.18.0
+              command:
+                - restic
+                - "-r"
+                - "s3:$(BUCKET_NAME):/$(CLUSTER_NAME)/{{ cookiecutter.project_slug }}-backup"
+                - "--verbose"
+                - "forget"
+                - "--keep-last"
+                - "5"
+                - "--keep-weekly"
+                - "3"
+                - "--keep-monthly"
+                - "1"
+                - "--prune"
+              env:
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: restic
+                      key: AWS_ACCESS_KEY_ID
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: restic
+                      key: AWS_SECRET_ACCESS_KEY
+                - name: RESTIC_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: restic
+                      key: RESTIC_PASSWORD
+                - name: BUCKET_NAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: restic
+                      key: BUCKET_NAME
+                - name: CLUSTER_NAME
+                  valueFrom:
+                    secretKeyRef:
+                      name: restic
+                      key: CLUSTER_NAME
+                - name: RESTIC_HOST
+                  valueFrom:
+                    secretKeyRef:
+                      name: restic
+                      key: CLUSTER_NAME
