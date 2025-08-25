@@ -19,8 +19,8 @@ spec:
     spec:
       {%- if cookiecutter.has_node_affinity %}
       nodeSelector:
-       kubernetes.io/hostname: NODE_NAME
-      {% endif %-}
+        kubernetes.io/hostname: NODE_NAME
+      {% endif %}
       containers:
       - name: app
         image: {{ cookiecutter.image }}:{{ cookiecutter.image_version }}
@@ -29,7 +29,7 @@ spec:
         - containerPort: {{ cookiecutter.container_port }}
           name: http
           protocol: TCP
-        {%- if cookiecutter.has_configmap_config %}
+        {%- if cookiecutter.has_configmap_env %}
         envFrom:
         - configMapRef:
             name: {{ cookiecutter.project_slug }}-env
@@ -54,28 +54,28 @@ spec:
         volumeMounts:
         {%- if cookiecutter.has_configmap_config %}
         - name: config
-          mountPath: /PATH/IN/CONTAINER
+          mountPath: {{ cookiecutter.config_volume_path }}
           readOnly: true
           subPath: config.yaml
         {%- endif %}
         {%- if cookiecutter.has_volume_config %}
         - name: config
-          mountPath: /PATH/IN/CONTAINER
+          mountPath: {{ cookiecutter.config_volume_path }}
           readOnly: true
         {%- endif %}
         {%- if cookiecutter.has_volume_data %}
         - name: data
-          mountPath: /PATH/IN/CONTAINER
+          mountPath: {{ cookiecutter.data_volume_path }}
           readOnly: false
         {%- endif %}
         {%- if cookiecutter.has_volume_2 %}
         - name: volume-2
-          mountPath: /PATH/IN/CONTAINER
+          mountPath: {{ cookiecutter.data2_volume_path }}
           readOnly: false
         {%- endif %} 
         {%- if cookiecutter.has_volume_3 %}
         - name: volume-3
-          mountPath: /PATH/IN/CONTAINER
+          mountPath: {{ cookiecutter.data3_volume_path }}
           readOnly: false
         {%- endif %}
 

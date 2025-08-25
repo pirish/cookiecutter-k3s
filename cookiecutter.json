@@ -1,11 +1,11 @@
 {
   "project_name": "K3s Project",
   "project_slug": "{{ cookiecutter.project_name.lower().replace(' ', '-') }}",
-  "author_name": "Your Name",
   "description": "A brief description of the project",
   "cluster_base_domain": "k3s.local",
   "app_domain": "{{ cookiecutter.project_slug }}",
   "namespace": "default",
+  "has_node_affinity": false,
   "image": "strm/helloworld-http",
   "image_version": "latest",
   "replicas": 1,
@@ -14,7 +14,11 @@
   "has_configmap_env": true,
   "has_configmap_config": false,
   "has_volume_config": false,
+  "config_volume_path": "/PATH/IN/CONTAINER",
   "has_volume_data": false,
+  "data_volume_path": "/PATH/IN/CONTAINER",
   "has_volume_2": false,
-  "has_volume_3": false
+  "data2_volume_path": "/PATH/IN/CONTAINER",
+  "has_volume_3": false,
+  "data3_volume_path": "/PATH/IN/CONTAINER"
 } 
