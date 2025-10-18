@@ -23,7 +23,7 @@ metadata:
   namespace: {{ cookiecutter.namespace }}
   labels:
     app.kubernetes.io/name: {{ cookiecutter.project_slug }}-config
-    app.kubernetes.io/part-of: {{ cookiecutter.namespace }}
+    app.kubernetes.io/part-of: {{ cookiecutter.project_slug }}
 data:
   config.yaml: |
     ## Config file contents

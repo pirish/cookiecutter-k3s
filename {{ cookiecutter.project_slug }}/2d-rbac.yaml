@@ -1,0 +1,30 @@
+{%- if cookiecutter.role != "unset" %}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: {{ cookiecutter.role }}
+metadata:
+  name: {{ cookiecutter.project_slug }}
+  labels:
+    app.kubernetes.io/name: {{ cookiecutter.project_slug }}
+    app.kubernetes.io/instance: {{ cookiecutter.project_slug }}
+rules:
+
+
+
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: {{ cookiecutter.role }}Binding
+metadata:
+  name: {{ cookiecutter.project_slug }}
+  labels:
+    app.kubernetes.io/name: {{ cookiecutter.project_slug }}
+    app.kubernetes.io/instance: {{ cookiecutter.project_slug }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: {{ cookiecutter.role }}
+  name: {{ cookiecutter.role.lower() }}-admin
+subjects:
+- kind: ServiceAccount
+  namespace: {{ cookiecutter.namespace }}
+  name: {{ cookiecutter.service_account }}
+{%- endif %}

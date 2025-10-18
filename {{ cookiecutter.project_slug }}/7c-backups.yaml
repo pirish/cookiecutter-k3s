@@ -6,7 +6,7 @@ metadata:
   name: {{ cookiecutter.project_slug }}-backup
 spec:
   # Every day at 0300
-  schedule: 0 3 * * *
+  schedule: "0 2 * * *"
   jobTemplate:
     spec:
       template:
@@ -18,7 +18,7 @@ spec:
               command:
                 - restic
                 - "-r"
-                - "s3:$(BUCKET_NAME)/$(CLUSTER_NAME)/{{ cookiecutter.project_slug }}-backup"
+                - "s3:$(BUCKET_NAME)/{{ cookiecutter.cluster_name }}/{{ cookiecutter.project_slug }}-backup"
                 - "--verbose"
                 - "backup"
                 - "/home/node/{{ cookiecutter.project_slug }}-data"
@@ -54,48 +54,58 @@ spec:
                       name: restic
                       key: CLUSTER_NAME
               volumeMounts:
-                {%- if cookiecutter.has_volume_config %}
-                - name: config
-                  mountPath: /home/node/{{ cookiecutter.project_slug }}-data/config
+                {%- if cookiecutter.has_volume_0 %}
+                - name: {{ cookiecutter.volume_0_name }}
+                  mountPath: /home/node/{{ cookiecutter.project_slug }}-data/{{ cookiecutter.volume_0_name}}
                   readOnly: true
                 {%- endif %}
-                {%- if cookiecutter.has_volume_data %}
-                - name: data
-                  mountPath: /home/node/{{ cookiecutter.project_slug }}-data/data 
+                {%- if cookiecutter.has_volume_1 %}
+                - name: {{ cookiecutter.volume_1_name }}
+                  mountPath: /home/node/{{ cookiecutter.project_slug }}-data/{{ cookiecutter.volume_1_name }}
                   readOnly: false
                 {%- endif %}
                 {%- if cookiecutter.has_volume_2 %}
-                - name: volume-2
-                  mountPath: /home/node/{{ cookiecutter.project_slug }}-data/volume-2
+                - name: {{ cookiecutter.volume_2_name }}
+                  mountPath: /home/node/{{ cookiecutter.project_slug }}-data/{{ cookiecutter.volume_2_name }}
                   readOnly: false
                 {%- endif %} 
                 {%- if cookiecutter.has_volume_3 %}
-                - name: volume-3
-                  mountPath: /home/node/{{ cookiecutter.project_slug }}-data/volume-3
+                - name: {{ cookiecutter.volume_3_name }}
+                  mountPath: /home/node/{{ cookiecutter.project_slug }}-data/{{ cookiecutter.volume_3_name }}
+                  readOnly: false
+                {%- endif %}
+                {%- if cookiecutter.has_volume_4 %}
+                - name: {{ cookiecutter.volume_4_name }}
+                  mountPath: /home/node/{{ cookiecutter.project_slug }}-data/{{ cookiecutter.volume_4_name }}
                   readOnly: false
                 {%- endif %}
           volumes:
-            {%- if cookiecutter.has_volume_config %}
-            - name: config
+            {%- if cookiecutter.has_volume_0 %}
+            - name: {{ cookiecutter.volume_0_name }}
               persistentVolumeClaim:
-                claimName: {{ cookiecutter.project_slug }}-config-pvc
+                claimName: {{ cookiecutter.project_slug }}-{{ cookiecutter.volume_0_name }}-pvc
             {%- endif %}
-            {%- if cookiecutter.has_volume_data %}
-            - name: data
+            {%- if cookiecutter.has_volume_1 %}
+            - name: {{ cookiecutter.volume_1_name }}
               persistentVolumeClaim:
-                claimName: {{ cookiecutter.project_slug }}-data-pvc
+                claimName: {{ cookiecutter.project_slug }}-{{ cookiecutter.volume_1_name }}-pvc
             {%- endif %}
             {%- if cookiecutter.has_volume_2 %}
-            - name: volume-2
+            - name: {{ cookiecutter.volume_2_name }}
               persistentVolumeClaim:
-                claimName: {{ cookiecutter.project_slug }}-volume-2-pvc
+                claimName: {{ cookiecutter.project_slug }}-{{ cookiecutter.volume_2_name }}-pvc
             {%- endif %}
             {%- if cookiecutter.has_volume_3 %}
-            - name: volume-3
+            - name: {{ cookiecutter.volume_3_name }}
               persistentVolumeClaim:
-                claimName: {{ cookiecutter.project_slug }}-volume-3-pvc
+                claimName: {{ cookiecutter.project_slug }}-{{ cookiecutter.volume_3_name }}-pvc
             {%- endif %}
----
+            {%- if cookiecutter.has_volume_4 %}
+            - name: {{ cookiecutter.volume_4_name }}
+              persistentVolumeClaim:
+                claimName: {{ cookiecutter.project_slug }}-{{ cookiecutter.volume_4_name }}-pvc
+            {%- endif %}
+
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -103,7 +113,7 @@ metadata:
   name: {{ cookiecutter.project_slug }}-backup-cleanup
 spec:
   # Every day at 0400 after backups have run
-  schedule: 0 4 * * *
+  schedule: "0 4 * * *"
   jobTemplate:
     spec:
       template:
@@ -115,7 +125,7 @@ spec:
               command:
                 - restic
                 - "-r"
-                - "s3:$(BUCKET_NAME):/$(CLUSTER_NAME)/{{ cookiecutter.project_slug }}-backup"
+                - "s3:$(BUCKET_NAME):/{{ cookiecutter.cluster_name }}/{{ cookiecutter.project_slug }}-backup"
                 - "--verbose"
                 - "forget"
                 - "--keep-last"

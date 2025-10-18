@@ -1,0 +1,133 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  namespace: {{ cookiecutter.namespace }}
+  name: {{ cookiecutter.project_slug }}-deployment
+  labels:
+    app.kubernetes.io/managed-by: argo-cd
+    app.kubernetes.io/part-of: {{ cookiecutter.namespace }}
+    app.kubernetes.io/name: {{ cookiecutter.project_slug }}
+spec:
+  tolerations:
+      # these tolerations are to have the daemonset runnable on control plane nodes
+      # remove them if your control plane nodes should not run pods
+  # - key: node-role.kubernetes.io/control-plane
+  #   operator: Exists
+  #   effect: NoSchedule
+  # - key: node-role.kubernetes.io/master
+  #   operator: Exists
+  #   effect: NoSchedule
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ cookiecutter.project_slug }}
+
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ cookiecutter.project_slug }}
+    spec:
+      {%- if cookiecutter.role != "unset" %}
+      serviceAccountName: {{ cookiecutter.service_account }}
+      {% endif %}
+      containers:
+      - name: {{ cookiecutter.project_slug }}
+        image: {{ cookiecutter.image }}:{{ cookiecutter.image_version }}
+        imagePullPolicy: Always
+        ports:
+        - containerPort: {{ cookiecutter.container_port }}
+          name: http
+          protocol: TCP
+        envFrom:
+        {%- if cookiecutter.has_configmap_env %}
+        - configMapRef:
+            name: {{ cookiecutter.project_slug }}-env
+        {%- endif %}
+        {%- if cookiecutter.has_secret_env %}
+        - secretRef:
+                name: {{ cookiecutter.project_slug }}-env-secret
+        {%- endif %}
+        args:
+        {%- if cookiecutter.has_liveness_probe %}
+        livenessProbe:
+          httpGet:
+            path: /ready
+            port: {{ cookiecutter.container_port }}
+          failureThreshold: 1
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        {%- endif %}
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "256Mi"
+        volumeMounts:
+        {%- if cookiecutter.has_configmap_config %}
+        - name: config
+          mountPath: {{ cookiecutter.configmap_config_path }}
+          readOnly: true
+          subPath: config.yaml
+        {%- endif %}
+        {%- if cookiecutter.has_volume_0 %}
+        - name: {{ cookiecutter.volume_0_name }}
+          mountPath: {{ cookiecutter.volume_0_path }}
+          readOnly: false
+        {%- endif %}
+        {%- if cookiecutter.has_volume_1 %}
+        - name: {{ cookiecutter.volume_1_name }}
+          mountPath: {{ cookiecutter.volume_1_path }}
+          readOnly: false
+        {%- endif %}
+        {%- if cookiecutter.has_volume_2 %}
+        - name: {{ cookiecutter.volume_2_name }}
+          mountPath: {{ cookiecutter.volume_2_path }}
+          readOnly: false
+        {%- endif %} 
+        {%- if cookiecutter.has_volume_3 %}
+        - name: {{ cookiecutter.volume_3_name }}
+          mountPath: {{ cookiecutter.volume_3_path }}
+          readOnly: false
+        {%- endif %}
+        {%- if cookiecutter.has_volume_4 %}
+        - name: {{ cookiecutter.volume_4_name }}
+          mountPath: {{ cookiecutter.volume_4_path }}
+          readOnly: false
+        {%- endif %}
+
+      volumes:
+        {%- if cookiecutter.has_configmap_config %}
+        # Create a config.yaml file from the ConfigMap below.
+        - name: config
+          configMap:
+            name: {{ cookiecutter.project_slug }}-config
+            items:
+            - key: config.yaml
+              path: config.yaml
+        {%- endif %}
+        {%- if cookiecutter.has_volume_0 %}
+        - name: {{ cookiecutter.volume_0_name }}
+          persistentVolumeClaim:
+            claimName: {{ cookiecutter.project_slug }}-{{ cookiecutter.volume_0_name }}-pvc
+        {%- endif %}
+        {%- if cookiecutter.has_volume_1 %}
+        - name: {{ cookiecutter.volume_1_name }}
+          persistentVolumeClaim:
+            claimName: {{ cookiecutter.project_slug }}-{{ cookiecutter.volume_1_name }}-pvc
+        {%- endif %}
+        {%- if cookiecutter.has_volume_2 %}
+        - name: {{ cookiecutter.volume_2_name }}
+          persistentVolumeClaim:
+            claimName: {{ cookiecutter.project_slug }}-{{ cookiecutter.volume_2_name }}-pvc
+        {%- endif %}
+        {%- if cookiecutter.has_volume_3 %}
+        - name: {{ cookiecutter.volume_3_name }}
+          persistentVolumeClaim:
+            claimName: {{ cookiecutter.project_slug }}-{{ cookiecutter.volume_3_name }}-pvc
+        {%- endif %}
+        {%- if cookiecutter.has_volume_4 %}
+        - name: {{ cookiecutter.volume_4_name }}
+          persistentVolumeClaim:
+            claimName: {{ cookiecutter.project_slug }}-{{ cookiecutter.volume_4_name }}-pvc
+        {%- endif %}

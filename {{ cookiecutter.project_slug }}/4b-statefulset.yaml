@@ -1,8 +1,8 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
   namespace: {{ cookiecutter.namespace }}
-  name: {{ cookiecutter.project_slug }}-deployment
+  name: {{ cookiecutter.project_slug }}-statefulset
   labels:
     app.kubernetes.io/managed-by: argo-cd
     app.kubernetes.io/part-of: {{ cookiecutter.namespace }}
@@ -11,6 +11,8 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ cookiecutter.project_slug }}
+  serviceName: {{ cookiecutter.project_slug }}-
+  #minReadySeconds: 10 # by default is 0
   replicas: 1
   template:
     metadata:
@@ -21,18 +23,25 @@ spec:
       nodeSelector:
         kubernetes.io/hostname: NODE_NAME
       {% endif %}
+      {%- if cookiecutter.role != "unset" %}
+      serviceAccountName: {{ cookiecutter.service_account }}
+      {% endif %}
       containers:
-      - name: app
+      - name: {{ cookiecutter.project_slug }}
         image: {{ cookiecutter.image }}:{{ cookiecutter.image_version }}
         imagePullPolicy: Always
         ports:
         - containerPort: {{ cookiecutter.container_port }}
           name: http
           protocol: TCP
-        {%- if cookiecutter.has_configmap_env %}
         envFrom:
+        {%- if cookiecutter.has_configmap_env %}
         - configMapRef:
             name: {{ cookiecutter.project_slug }}-env
+        {%- endif %}
+        {%- if cookiecutter.has_secret_env %}
+        - secretRef:
+                name: {{ cookiecutter.project_slug }}-env-secret
         {%- endif %}
         args:
         {%- if cookiecutter.has_liveness_probe %}
@@ -54,28 +63,33 @@ spec:
         volumeMounts:
         {%- if cookiecutter.has_configmap_config %}
         - name: config
-          mountPath: {{ cookiecutter.config_volume_path }}
+          mountPath: {{ cookiecutter.configmap_config_path }}
           readOnly: true
           subPath: config.yaml
         {%- endif %}
-        {%- if cookiecutter.has_volume_config %}
-        - name: config
-          mountPath: {{ cookiecutter.config_volume_path }}
-          readOnly: true
+        {%- if cookiecutter.has_volume_0 %}
+        - name: {{ cookiecutter.volume_0_name }}
+          mountPath: {{ cookiecutter.volume_0_path }}
+          readOnly: false
         {%- endif %}
-        {%- if cookiecutter.has_volume_data %}
-        - name: data
-          mountPath: {{ cookiecutter.data_volume_path }}
+        {%- if cookiecutter.has_volume_1 %}
+        - name: {{ cookiecutter.volume_1_name }}
+          mountPath: {{ cookiecutter.volume_1_path }}
           readOnly: false
         {%- endif %}
         {%- if cookiecutter.has_volume_2 %}
-        - name: volume-2
-          mountPath: {{ cookiecutter.data2_volume_path }}
+        - name: {{ cookiecutter.volume_2_name }}
+          mountPath: {{ cookiecutter.volume_2_path }}
           readOnly: false
         {%- endif %} 
         {%- if cookiecutter.has_volume_3 %}
-        - name: volume-3
-          mountPath: {{ cookiecutter.data3_volume_path }}
+        - name: {{ cookiecutter.volume_3_name }}
+          mountPath: {{ cookiecutter.volume_3_path }}
+          readOnly: false
+        {%- endif %}
+        {%- if cookiecutter.has_volume_4 %}
+        - name: {{ cookiecutter.volume_4_name }}
+          mountPath: {{ cookiecutter.volume_4_path }}
           readOnly: false
         {%- endif %}
 
@@ -89,23 +103,28 @@ spec:
             - key: config.yaml
               path: config.yaml
         {%- endif %}
-        {%- if cookiecutter.has_volume_config %}
-        - name: config
+        {%- if cookiecutter.has_volume_0 %}
+        - name: {{ cookiecutter.volume_0_name }}
           persistentVolumeClaim:
-            claimName: {{ cookiecutter.project_slug }}-config-pvc
+            claimName: {{ cookiecutter.project_slug }}-{{ cookiecutter.volume_0_name }}-pvc
         {%- endif %}
-        {%- if cookiecutter.has_volume_data %}
-        - name: data
+        {%- if cookiecutter.has_volume_1 %}
+        - name: {{ cookiecutter.volume_1_name }}
           persistentVolumeClaim:
-            claimName: {{ cookiecutter.project_slug }}-data-pvc
+            claimName: {{ cookiecutter.project_slug }}-{{ cookiecutter.volume_1_name }}-pvc
         {%- endif %}
         {%- if cookiecutter.has_volume_2 %}
-        - name: volume-2
+        - name: {{ cookiecutter.volume_2_name }}
           persistentVolumeClaim:
-            claimName: {{ cookiecutter.project_slug }}-volume-2-pvc
+            claimName: {{ cookiecutter.project_slug }}-{{ cookiecutter.volume_2_name }}-pvc
         {%- endif %}
         {%- if cookiecutter.has_volume_3 %}
-        - name: volume-3
+        - name: {{ cookiecutter.volume_3_name }}
           persistentVolumeClaim:
-            claimName: {{ cookiecutter.project_slug }}-volume-3-pvc
+            claimName: {{ cookiecutter.project_slug }}-{{ cookiecutter.volume_3_name }}-pvc
+        {%- endif %}
+        {%- if cookiecutter.has_volume_4 %}
+        - name: {{ cookiecutter.volume_4_name }}
+          persistentVolumeClaim:
+            claimName: {{ cookiecutter.project_slug }}-{{ cookiecutter.volume_4_name }}-pvc
         {%- endif %}

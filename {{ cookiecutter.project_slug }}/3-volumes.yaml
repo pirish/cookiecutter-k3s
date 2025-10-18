@@ -1,9 +1,9 @@
-{%- if cookiecutter.has_volume_config %}
+{%- if cookiecutter.has_volume_0 %}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ cookiecutter.project_slug }}-config-pvc
+  name: {{ cookiecutter.project_slug }}-{{ cookiecutter.volume_0_name }}-pvc
   namespace: {{ cookiecutter.namespace }}
 spec:
   accessModes:
@@ -11,14 +11,14 @@ spec:
   storageClassName: local-path
   resources:
     requests:
-      storage: 500Mi
+      storage: 1Gi
 {%- endif %}
-{%- if cookiecutter.has_volume_data %}
+{%- if cookiecutter.has_volume_1 %}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ cookiecutter.project_slug }}-data-pvc
+  name: {{ cookiecutter.project_slug }}-{{ cookiecutter.volume_1_name }}-pvc
   namespace: {{ cookiecutter.namespace }}
 spec:
   accessModes:
@@ -26,14 +26,14 @@ spec:
   storageClassName: local-path
   resources:
     requests:
-      storage: 5Gi
+      storage: 1Gi
 {%- endif %}
 {%- if cookiecutter.has_volume_2 %}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ cookiecutter.project_slug }}-volume-2-pvc
+  name: {{ cookiecutter.project_slug }}-{{ cookiecutter.volume_2_name }}-pvc
   namespace: {{ cookiecutter.namespace }}
 spec:
   accessModes:
@@ -41,14 +41,14 @@ spec:
   storageClassName: local-path
   resources:
     requests:
-      storage: 2Gi
+      storage: 1Gi
 {%- endif %}
 {%- if cookiecutter.has_volume_3 %}
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
-  name: {{ cookiecutter.project_slug }}-volume-3-pvc
+  name: {{ cookiecutter.project_slug }}-{{ cookiecutter.volume_3_name }}-pvc
   namespace: {{ cookiecutter.namespace }}
 spec:
   accessModes:
@@ -56,5 +56,20 @@ spec:
   storageClassName: local-path
   resources:
     requests:
-      storage: 2Gi  
+      storage: 1Gi  
+{%- endif %}
+{%- if cookiecutter.has_volume_4 %}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ cookiecutter.project_slug }}-{{ cookiecutter.volume_4_name }}-pvc
+  namespace: {{ cookiecutter.namespace }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 1Gi
 {%- endif %}
